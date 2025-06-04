@@ -74,8 +74,10 @@ def handle_message(event):
             chunks = []
             chunk = ""
             for r in results:
-                entry = f"Name: {r['name']}
-Address: {r['address'] or '-'}
+               entry = (
+    f"Name: {r['name']}\n"
+    f"Address: {r['address'] or '-'}\n\n"
+)
 
 "
                 if len(chunk + entry) > 1500:
