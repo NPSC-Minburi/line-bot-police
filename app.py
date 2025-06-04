@@ -116,7 +116,8 @@ def handle_message(event):
 	@จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่,ของกลาง
 	# ชื่อ หรือ # เลขบัตร
 """
-
+		 (
+			 
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply)
