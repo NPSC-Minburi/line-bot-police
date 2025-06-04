@@ -37,7 +37,7 @@ def handle_message(event):
     if text.startswith("@จับ"):
         parts = text[3:].split("|")
         if len(parts) != 9:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ รูปแบบคำสั่งผิด
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ รูปแบบคำสั่งผิด"
 โปรดใช้: @จับ ชื่อ|เลขบัตร|เบอร์โทร|ที่อยู่|โลเคชั่น|ข้อหา|สถานที่จับ|วันที่จับ|ของกลาง"))
             return
         name, id_card, phone, address, location, charge, arrest_place, arrest_date, evidence = [p.strip() for p in parts]
