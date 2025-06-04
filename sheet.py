@@ -5,7 +5,7 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name("key.json", scope)
 client = gspread.authorize(creds)
 
-sheet = client.open_by_key("YOUR_SPREADSHEET_ID").sheet1
+sheet = client.open_by_key("1Dl_kjZd8zoVQBiA8C7e5o3oLglo_SLKojC9ONlo5Eyk").sheet1
 
 def add_person(name, id_card, phone, address):
     sheet.append_row([name, id_card, phone, address, "", "", "", "", "", ""])
@@ -24,10 +24,10 @@ def update_case_info(id_card, charge, arrest_place, arrest_date, evidence):
     for i, row in enumerate(records, start=2):
         row_id = str(row.get("id_card", "")).strip()
         if str(id_card).strip() == row_id:
-            sheet.update_cell(i, 6, charge)
-            sheet.update_cell(i, 7, arrest_place)
-            sheet.update_cell(i, 8, arrest_date)
-            sheet.update_cell(i, 9, evidence)
+            sheet.update_cell(i, 7, charge)
+            sheet.update_cell(i, 8, arrest_place)
+            sheet.update_cell(i, 9, arrest_date)
+            sheet.update_cell(i, 10, evidence)
             return True
     return False
 
