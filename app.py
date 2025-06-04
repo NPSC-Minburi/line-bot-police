@@ -79,7 +79,6 @@ def handle_message(event):
     f"Address: {r['address'] or '-'}\n\n"
 )
 
-"
                 if len(chunk + entry) > 1500:
                     chunks.append(chunk)
                     chunk = entry
