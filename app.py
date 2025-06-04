@@ -107,7 +107,7 @@ def handle_message(event):
         else:
             reply = "ไม่พบข้อมูล"
 
-elif text.strip() == "#รายชื่อ":
+elif text.strip() == "รายชื่อ":
     results = search_person("")
     if not results:
         reply = "ยังไม่มีข้อมูลในระบบ"
