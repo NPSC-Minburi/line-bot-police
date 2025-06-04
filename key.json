@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "healthy-skill-461913-r8",
+  "private_key_id": "0e02dd11cc6449e268fbffebdff18c5de216bdbe",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCRwFBuGzvqWC7A\n+Plj53nSM+aoxQRvrcqQ8thCbTMFoG+8whgZVJfLZkFrtaGGlvPUFoS5gK1UGqbo\nWzT0/DeQkm4KC25E1dxIkFA9fhYEVWPA9X4Ke1hgf2D7xSvHgJVyG0aBKXyopgxY\naQr4egupJq2SF1/DucnxDTSq3KNC5nfNgOI9bTcyHieB+FX4s/Guwp8XOXRU1/Ow\nC7mdKEAfXMUM8Z/UIIXzN4c7VJ8kG/4IRnuU7O+MH8+LDgSU2o+X6Ui6oc+Bi/0H\nR4VuWkAaIPyJUYUfzacZ5F02GS1c7anrrIHcmBFvREwUgR6M6qYkB9Bw4ZEclvAC\n0KR/LG1JAgMBAAECggEAFJ79MirTvgrmaIKBRFd8ZpdVv9SKFWPlCD93heRtxtLF\nZFMgtjq/9DTeNic/OGvUiRH7isRQIZlYuoCm/C9QDDoPbAfkfMQ2M6UJWT3kzw2m\nvKbvA3wii5qSBeUGVeZVHo0J213bh3/guMR52yBnVHIGtifs8mPvlJV9+VuYlK8Q\ni8Dv/pDEOxRgIaeAe25BJ5q1Hm4h6pO5Cuv8+AIyRA1hpmw2ONlVnCCzjbCP+cZ8\nqIVMHYsq5jj3SNxsz+Rqv3KicYFxNm6ggP7BqXvM6kSW1cNF2kCr1N8/v2kLle6u\n0vVMm3Bcivbu81iFmnFALWl2uVRPw4VXtqhe24ia9QKBgQDNHPTCzwxhLL2GFjIt\nHbQZ8SmeMEwXlAyl5VlSiRUTJm8+DhTT8AuNezFg20mE3YtkeuSip9/Dd1sD6OqF\nXp6moEs34RpbeQi+HwGp1bSiFff7qCDdbX2Mvu7mwKZkmnb1A3r3+RQjsmELNO0C\nWmKNgugSYM3+NappGu7UY7x+9QKBgQC16THzcxQUu5h9+Emoo9DUJf36bkgVbPm5\nvXGO9AQX65v1ApRqLhnNp6JvHWJu3jWyuY0mE9r5JSNJt0EDar2StLIiRG2uTlrQ\nUKZATukY2tmFOo7qtBmWDO7OOyvCbkoYyVm+KQlNeIqoWiFDj/HX4ZSxB7BtKGyJ\nqq1K80mYhQKBgBYYjHWAAIFnZHNRaM5baM9yn10fLtNLa6Fjd5/gjJinh0xUEAJU\n1anEH6mjdeQOSbnlU0QCeaSA8xkUuk7rxoOEuRWn9kLsYvi4NmGpV/AuFazSi9fO\nt7u1xd6t2j70NORoH5MfDgBacwHWDcI3Im7EL2PrccV02orAEAJpTCERAoGAGd9N\nzGs8mupHePscNtD9vX6dzcVrmSiDqAgqo4NPJbvL1aAFTci6wMYr0xPh0RTnnEDJ\ns3W1eiPvDefzZjIDPl9Wyori8pyQS/p8er7+ZhuSPmGiu/zberziJhDCW4fmH/pb\nOjGJ8ivHxMP04TAS3Hpn9Hm8fPn33eiZdwR9HiUCgYA/7MpRfyZzJdouiuZ+kHza\nY37hs4Uj1jdr3f41hW3A+5FEZ6D9nIev/lwMensP2OyJNUYpSidl8Op1WQ972u7x\n9jIlZsTRx79MP7nPEeR7n+NcGGz0lHtUb+DnHFRSx2AYQ4gYtG0LIPLMIMg2pCDO\nS7VyTcNbKaWvpv8L20cycw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "linebot-access@healthy-skill-461913-r8.iam.gserviceaccount.com",
+  "client_id": "115659880376273729754",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/linebot-access%40healthy-skill-461913-r8.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
