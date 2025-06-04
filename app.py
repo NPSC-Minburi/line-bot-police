@@ -15,89 +15,126 @@ app = Flask(__name__)
 line_bot_api = LineBotApi("XZQfnLfuJztTHpij7sX+4N89Hn/hO1AGLiXwieEFPf47YZcOMVEHyNgdfUC8sEF23opgt2LCtDKS7uNSMQukHQb4Zf7jpzUcjK13LyJAbyiw+h9UATVBQ0QQhySaQoDXW8+uESgYCr4b7pE5pStCjQdB04t89/1O/w1cDnyilFU=")
 handler = WebhookHandler("8c6da693d7fe0139694d880b5a8a18bd")
 
-@app.route("/callback", methods=["POST"])
-def callback():
-    signature = request.headers["X-Line-Signature"]
-    body = request.get_data(as_text=True)
-    try:
-        handler.handle(body, signature)
-    except Exception as e:
-        print("Error:", e)
-        abort(400)
-    return "OK"
-
 @app.route("/ping")
 def ping():
     return "pong"
 
+@app.route("/callback", methods=['POST'])
+def callback():
+    signature = request.headers['X-Line-Signature']
+    body = request.get_data(as_text=True)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+    return 'OK'
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     text = event.message.text.strip()
+    reply = "❌ คำสั่งไม่ถูกต้อง"
 
-    if text.startswith("@จับ"):
-        parts = text[3:].split("|")
-        if len(parts) != 9:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ รูปแบบคำสั่งผิด"
-โปรดใช้: @จับ ชื่อ|เลขบัตร|เบอร์โทร|ที่อยู่|โลเคชั่น|ข้อหา|สถานที่จับ|วันที่จับ|ของกลาง"))
-            return
-        name, id_card, phone, address, location, charge, arrest_place, arrest_date, evidence = [p.strip() for p in parts]
-        sheet.append_person({
-            "name": name,
-            "id_card": id_card,
-            "phone": phone,
-            "address": address,
-            "location": location,
-            "charge": charge,
-            "arrest_place": arrest_place,
-            "arrest_date": arrest_date,
-            "evidence": evidence
-        })
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="✅ เพิ่มข้อมูลเรียบร้อยแล้ว"))
+    if text.startswith("@ "):
+        try:
+            parts = text.replace("@", "", 1).strip().split(",")
+            if len(parts) != 4:
+                reply = "❌ รูปแบบ: @ ชื่อ,เลขบัตร,เบอร์,ที่อยู่"
+            else:
+                name, id_card, phone, address = [p.strip() for p in parts]
+                add_person(name, id_card, phone, address)
+                reply = f"✅ เพิ่มข้อมูลของ {name} เรียบร้อย"
+        except Exception as e:
+            reply = f"❌ เกิดข้อผิดพลาด: {e}"
+
+    elif text.startswith("@lat"):
+        try:
+            _, id_card, location = text.strip().split(" ", 2)
+            ok = update_location(id_card, location)
+            reply = "✅ เพิ่มโลเคชั่นแล้ว" if ok else "❌ ไม่พบเลขบัตรนี้"
+        except:
+            reply = "❌ ใช้รูปแบบ: @lat <เลขบัตร> <ละติจูด,ลองจิจูด>"
+
+    elif text.startswith("@จับ"):
+        try:
+            parts = text.replace("@จับ", "", 1).strip().split(",")
+            if len(parts) != 5:
+                reply = "❌ รูปแบบ: @จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่,ของกลาง"
+            else:
+                id_card, charge, place, date, evidence = [p.strip() for p in parts]
+                ok = update_case_info(id_card, charge, place, date, evidence)
+                reply = "✅ บันทึกข้อมูลการจับกุมแล้ว" if ok else "❌ ไม่พบเลขบัตรนี้"
+        except Exception as e:
+            reply = f"❌ เกิดข้อผิดพลาด: {e}"
 
     elif text.startswith("#"):
-        keyword = text[1:].strip()
-        results = sheet.search_person(keyword)
-        if not results:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="❌ ไม่พบข้อมูล"))
-            return
+        keyword = text.replace("#", "").strip()
+        results = search_person(keyword)
+        messages = []
 
-        for r in results:
-            reply = f"""👤 {r['name']}
-🪪 เลขบัตร: {r['id_card']}
-📞 เบอร์โทร: {r['phone']}
-🏠 ที่อยู่: {r['address']}
-📍 โลเคชั่น: {r['location']}
-🧾 ข้อหา: {r['charge']}
-📍 สถานที่จับกุม: {r['arrest_place']}
-📅 วันที่จับ: {r['arrest_date']}
-📦 ของกลาง: {r['evidence']}"""
+        if results:
+            for r in results:
+                detail = (
+                    f"👤 {r['name']}
+"
+                    f"🆔 {r['id_card']}
+"
+                    f"📞 {r['phone']}
+"
+                    f"🏠 {r['address']}
+"
+                    f"📍 {r['location'] or 'ยังไม่มี'}
+"
+                    f"🚓 ข้อหา: {r['charge'] or '-'}
+"
+                    f"📍 สถานที่จับ: {r['arrest_place'] or '-'}
+"
+                    f"📅 วันที่จับ: {r['arrest_date'] or '-'}
+"
+                    f"🧾 ของกลาง: {r['evidence'] or '-'}"
+                )
+                messages.append(TextSendMessage(text=detail))
 
-            messages = [TextSendMessage(text=reply)]
-
-            # ถ้ามีโลเคชั่น
-            if r["location"].startswith("http"):
-                loc_parts = r["location"].split("@")[-1].split(",")
-                if len(loc_parts) >= 2:
-                    lat = float(loc_parts[0])
-                    lng = float(loc_parts[1])
-                    messages.append(LocationSendMessage(
-                        title="จุดที่ถูกจับ",
-                        address=r["address"],
-                        latitude=lat,
-                        longitude=lng
+                if r.get("photo_url") and r["photo_url"].startswith("http"):
+                    messages.append(ImageSendMessage(
+                        original_content_url=r["photo_url"],
+                        preview_image_url=r["photo_url"]
                     ))
 
+                if r["location"]:
+                    try:
+                        lat, lng = map(float, r["location"].split(","))
+                        messages.append(LocationSendMessage(
+                            title=f"📍 ตำแหน่งของ {r['name']}",
+                            address=r["address"],
+                            latitude=lat,
+                            longitude=lng
+                        ))
+                    except:
+                        messages.append(TextSendMessage(text="⚠️ พิกัดไม่ถูกต้อง"))
+
             line_bot_api.reply_message(event.reply_token, messages)
+            return
+        else:
+            reply = "ไม่พบข้อมูล"
 
-    else:
-        menu = """📚 คำสั่งที่ใช้ได้:
-🔹 เพิ่มข้อมูลจับกุม:
-@จับ ชื่อ|เลขบัตร|เบอร์โทร|ที่อยู่|โลเคชั่น|ข้อหา|สถานที่จับ|วันที่จับ|ของกลาง
+    elif text in ["เมนู", "ช่วยเหลือ", "วิธีใช้"]:
+        reply = (
+            "📌 คำสั่งใช้งานของบอท:
 
-🔹 ค้นหาข้อมูล:
-#คำค้นหา (เช่น #สมชาย)"""
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=menu))
+"
+            "@ ชื่อ,เลขบัตร,เบอร์,ที่อยู่
+"
+            "@lat เลขบัตร ละติจูด,ลองจิจูด
+"
+            "@จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่,ของกลาง
+"
+            "# ชื่อ หรือ # เลขบัตร"
+        )
 
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply)
+    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
