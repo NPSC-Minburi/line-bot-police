@@ -107,6 +107,25 @@ def handle_message(event):
         else:
             reply = "ไม่พบข้อมูล"
 
+elif text.strip() == "#รายชื่อ":
+    results = search_person("")
+    if not results:
+        reply = "ยังไม่มีข้อมูลในระบบ"
+    else:
+        chunks = []
+        chunk = ""
+        for r in results:
+            entry = f"👤 {r['name']}\n🏠 {r['address'] or '-'}\n\n"
+            if len(chunk + entry) > 1500:  # กันข้อความยาวเกิน
+                chunks.append(chunk)
+                chunk = entry
+            else:
+                chunk += entry
+        chunks.append(chunk)
+        messages = [TextSendMessage(text=msg.strip()) for msg in chunks[:5]]
+        line_bot_api.reply_message(event.reply_token, messages)
+        return
+
     elif text in ["เมนู", "ช่วยเหลือ", "วิธีใช้"]:
         reply = """📌 คำสั่งใช้งานของบอท:
 👤 เพิ่มชื่อ 
