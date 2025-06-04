@@ -5,7 +5,10 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
     ImageSendMessage, LocationSendMessage
 )
-from sheet import add_person, update_location, search_person
+from sheet import (
+    add_person, update_location, search_person,
+    update_case_info
+)
 
 app = Flask(__name__)
 
@@ -31,7 +34,6 @@ def handle_message(event):
     text = event.message.text.strip()
     reply = "❌ คำสั่งไม่ถูกต้อง"
 
-    # ➕ เพิ่มข้อมูล
     if text.startswith("@ "):
         try:
             parts = text.replace("@", "", 1).strip().split(",")
@@ -44,7 +46,6 @@ def handle_message(event):
         except Exception as e:
             reply = f"❌ เกิดข้อผิดพลาด: {e}"
 
-    # 🗺️ เพิ่มโลเคชั่น
     elif text.startswith("@lat"):
         try:
             _, id_card, location = text.strip().split(" ", 2)
@@ -53,7 +54,18 @@ def handle_message(event):
         except:
             reply = "❌ ใช้รูปแบบ: @lat <เลขบัตร> <ละติจูด,ลองจิจูด>"
 
-    # 🔍 ค้นหา
+    elif text.startswith("@จับ"):
+        try:
+            parts = text.replace("@จับ", "", 1).strip().split(",")
+            if len(parts) != 5:
+                reply = "❌ รูปแบบ: @จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่,ของกลาง"
+            else:
+                id_card, charge, place, date, evidence = [p.strip() for p in parts]
+                ok = update_case_info(id_card, charge, place, date, evidence)
+                reply = "✅ บันทึกข้อมูลการจับกุมแล้ว" if ok else "❌ ไม่พบเลขบัตรนี้"
+        except Exception as e:
+            reply = f"❌ เกิดข้อผิดพลาด: {e}"
+
     elif text.startswith("#"):
         keyword = text.replace("#", "").strip()
         results = search_person(keyword)
@@ -62,22 +74,32 @@ def handle_message(event):
         if results:
             for r in results:
                 detail = (
-                    f"👤 {r['name']}\n"
-                    f"🆔 {r['id_card']}\n"
-                    f"📞 {r['phone']}\n"
-                    f"🏠 {r['address']}\n"
-                    f"📍 {r['location'] or 'ยังไม่มี'}"
+                    f"👤 {r['name']}
+"
+                    f"🆔 {r['id_card']}
+"
+                    f"📞 {r['phone']}
+"
+                    f"🏠 {r['address']}
+"
+                    f"📍 {r['location'] or 'ยังไม่มี'}
+"
+                    f"🚓 ข้อหา: {r['charge'] or '-'}
+"
+                    f"📍 สถานที่จับ: {r['arrest_place'] or '-'}
+"
+                    f"📅 วันที่จับ: {r['arrest_date'] or '-'}
+"
+                    f"🧾 ของกลาง: {r['evidence'] or '-'}"
                 )
                 messages.append(TextSendMessage(text=detail))
 
-                # 📷 รูปภาพบ้าน
                 if r.get("photo_url") and r["photo_url"].startswith("http"):
                     messages.append(ImageSendMessage(
                         original_content_url=r["photo_url"],
                         preview_image_url=r["photo_url"]
                     ))
 
-                # 🗺️ ส่งพิกัดแผนที่
                 if r["location"]:
                     try:
                         lat, lng = map(float, r["location"].split(","))
@@ -95,23 +117,20 @@ def handle_message(event):
         else:
             reply = "ไม่พบข้อมูล"
 
-    # 📜 แสดงเมนู
     elif text in ["เมนู", "ช่วยเหลือ", "วิธีใช้"]:
         reply = (
-            "📌 คำสั่งใช้งานของบอท:\n\n"
-            "➕ เพิ่มข้อมูล:\n"
-            "@ ชื่อ,เลขบัตร,เบอร์โทร,ที่อยู่\n\n"
-            "🗺️ เพิ่มโลเคชั่น:\n"
-            "@lat เลขบัตร ละติจูด,ลองจิจูด\n\n"
-            "🔍 ค้นหาข้อมูล:\n"
-            "# ชื่อ หรือ # เลขบัตร\n\n"
-            "📞 ตัวอย่าง:\n"
-            "@ ไอบูม,4455,0886663333,บ้านริมคลอง\n"
-            "@lat 4455 13.00000,100.6666\n"
-            "# ไอบูม"
+            "📌 คำสั่งใช้งานของบอท:
+
+"
+            "@ ชื่อ,เลขบัตร,เบอร์,ที่อยู่
+"
+            "@lat เลขบัตร ละติจูด,ลองจิจูด
+"
+            "@จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่,ของกลาง
+"
+            "# ชื่อ หรือ # เลขบัตร"
         )
 
-    # 🔚 ส่งข้อความกลับ (สำหรับกรณีปกติ)
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply)
