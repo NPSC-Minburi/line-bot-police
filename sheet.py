@@ -16,11 +16,13 @@ def add_person(name, id_card, phone, address):
 # เพิ่มหรือแก้โลเคชั่น
 def update_location(id_card, location):
     records = sheet.get_all_records()
-    for i, row in enumerate(records, start=2):
-        if row["id_card"] == id_card:
-            sheet.update_cell(i, 5, location)
+    for i, row in enumerate(records, start=2):  
+        row_id = str(row.get("id_card", "")).strip()
+        if str(id_card).strip() == row_id:
+            sheet.update_cell(i, 5, location)  
             return True
     return False
+
 
 # ค้นหาตามชื่อหรือเลขบัตร
 def search_person(keyword):
