@@ -106,8 +106,8 @@ def handle_message(event):
             return
         else:
             reply = "ไม่พบข้อมูล"
-
-  if text.startswith(รายชื่อ):
+               ))
+  elif text.strip() == "#รายชื่อ":
         results = sheet.search_person("")
         if not results:
             reply = "ยังไม่มีข้อมูลในระบบ"
