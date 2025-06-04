@@ -73,25 +73,15 @@ def handle_message(event):
 
         if results:
             for r in results:
-                detail = (
-                    f"👤 {r['name']}
-"
-                    f"🆔 {r['id_card']}
-"
-                    f"📞 {r['phone']}
-"
-                    f"🏠 {r['address']}
-"
-                    f"📍 {r['location'] or 'ยังไม่มี'}
-"
-                    f"🚓 ข้อหา: {r['charge'] or '-'}
-"
-                    f"📍 สถานที่จับ: {r['arrest_place'] or '-'}
-"
-                    f"📅 วันที่จับ: {r['arrest_date'] or '-'}
-"
-                    f"🧾 ของกลาง: {r['evidence'] or '-'}"
-                )
+                detail = f"""👤 {r['name']}
+🆔 {r['id_card']}
+📞 {r['phone']}
+🏠 {r['address']}
+📍 {r['location'] or 'ยังไม่มี'}
+🚓 ข้อหา: {r['charge'] or '-'}
+📍 สถานที่จับ: {r['arrest_place'] or '-'}
+📅 วันที่จับ: {r['arrest_date'] or '-'}
+🧾 ของกลาง: {r['evidence'] or '-'}"""
                 messages.append(TextSendMessage(text=detail))
 
                 if r.get("photo_url") and r["photo_url"].startswith("http"):
