@@ -5,7 +5,14 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name("key.json", scope)
 client = gspread.authorize(creds)
 
-sheet = client.open_by_key("YOUR_SHEET_ID").sheet1
+sheet = client.open_by_key("1Dl_kjZd8zoVQBiA8C7e5o3oLglo_SLKojC9ONlo5Eyk").sheet1
+
+def check_duplicate_id(id_card):
+    records = sheet.get_all_records()
+    for row in records:
+        if str(row.get("id_card", "")).strip() == str(id_card).strip():
+            return True
+    return False
 
 def add_person(name, id_card, phone, address):
     sheet.append_row([name, id_card, phone, address, "", "", "", "", "", "", "", ""])
