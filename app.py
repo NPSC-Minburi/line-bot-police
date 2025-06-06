@@ -2,13 +2,22 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
-    ImageSendMessage, LocationSendMessage
+    MessageEvent, TextMessage, ImageMessage,
+    TextSendMessage, ImageSendMessage, LocationSendMessage
 )
 from sheet import (
     add_person, update_location, search_person,
-    update_case_info, update_note_type
+    update_case_info, update_note_type, check_duplicate_id, update_photo_url
 )
+import firebase_admin
+from firebase_admin import credentials, storage
+import os
+
+# Initialize Firebase
+cred = credentials.Certificate("firebase_key.json")
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'linebot-storage.appspot.com'
+})
 
 app = Flask(__name__)
 
@@ -29,6 +38,43 @@ def callback():
         abort(400)
     return 'OK'
 
+# === Upload Image to Firebase ===
+def upload_to_firebase(image_bytes, filename):
+    bucket = storage.bucket()
+    blob = bucket.blob(f"line_images/{filename}")
+    blob.upload_from_string(image_bytes, content_type='image/jpeg')
+    blob.make_public()
+    return blob.public_url
+
+# === Handle Image Upload ===
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    try:
+        with open("photo_mapping.txt", "r") as f:
+            mapping = f.read().strip().split(",")
+        user_id, id_card = mapping
+        if user_id != event.source.user_id:
+            raise Exception("User ID mismatch")
+    except:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="❌ กรุณาส่งคำสั่ง @รูป เลขบัตร ก่อนส่งภาพ")
+        )
+        return
+
+    message_content = line_bot_api.get_message_content(event.message.id)
+    image_data = b"".join([chunk for chunk in message_content.iter_content(None)])
+    filename = f"{id_card}_{event.message.id}.jpg"
+    image_url = upload_to_firebase(image_data, filename)
+
+    update_photo_url(id_card, image_url)
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=f"🖼️ อัปโหลดรูปภาพเรียบร้อยแล้ว: {image_url}")
+    )
+
+# === Handle Text Message ===
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     text = event.message.text.strip()
@@ -81,6 +127,15 @@ def handle_message(event):
         except Exception as e:
             reply = f"⚠️ เกิดข้อผิดพลาด: {e}"
 
+    elif text.startswith("@รูป"):
+        try:
+            _, id_card = text.strip().split(" ", 1)
+            with open("photo_mapping.txt", "w") as f:
+                f.write(f"{event.source.user_id},{id_card.strip()}")
+            reply = f"📸 ส่งภาพเข้ามาได้เลยสำหรับเลขบัตร {id_card.strip()}"
+        except:
+            reply = "📸 รูปแบบ: @รูป เลขบัตร"
+
     elif text.strip() == "#รายชื่อ":
         results = search_person("")
         if not results:
@@ -89,10 +144,7 @@ def handle_message(event):
             chunks = []
             chunk = ""
             for r in results:
-                entry = (
-                    f"👤 {r['name']}\n"
-                    f"🏠 {r['address'] or '-'}\n\n"
-                )
+                entry = f"👤 {r['name']}\n🏠 {r['address'] or '-'}\n\n"
                 if len(chunk + entry) > 1500:
                     chunks.append(chunk)
                     chunk = entry
@@ -153,14 +205,12 @@ def handle_message(event):
             "📍 เพิ่มโลเคชั่น:\n@lat เลขบัตร ละติจูด,ลองจิจูด\n\n"
             "🚓 เพิ่มข้อมูลจับกุม:\n@จับ เลขบัตร,ข้อหา,สถานที่จับ,วันที่จับ,ของกลาง\n\n"
             "🗒️ เพิ่มหมายเหตุ/ประเภท:\n@โน้ต เลขบัตร,หมายเหตุ,ประเภท\n\n"
+            "🖼️ ส่งรูปภาพ:\n@รูป เลขบัตร แล้วตามด้วยภาพ\n\n"
             "🔍 ค้นหาข้อมูล:\n#ชื่อ หรือ #เลขบัตร หรือ #ที่อยู่\n\n"
             "📋 แสดงรายชื่อทั้งหมด:\n#รายชื่อ"
         )
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply)
-    )
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
