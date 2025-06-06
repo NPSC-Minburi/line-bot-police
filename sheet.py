@@ -45,6 +45,14 @@ def update_note_type(id_card, note, data_type):
             return True
     return False
 
+def update_photo_url(id_card, photo_url):
+    records = sheet.get_all_records()
+    for i, row in enumerate(records, start=2):
+        if str(id_card).strip() == str(row.get("id_card", "")).strip():
+            sheet.update_cell(i, 6, photo_url)
+            return True
+    return False
+
 def search_person(keyword):
     records = sheet.get_all_records()
     results = []
