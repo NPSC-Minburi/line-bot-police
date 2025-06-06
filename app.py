@@ -32,58 +32,55 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     text = event.message.text.strip()
-    reply = "Invalid command format."
+    reply = "❌ คำสั่งไม่ถูกต้อง กรุณาพิมพ์ 'เมนู' เพื่อดูคำสั่งทั้งหมด"
 
     if text.startswith("@ "):
         try:
             parts = text.replace("@", "", 1).strip().split(",")
             if len(parts) != 4:
-                reply = "Format: @ Name,ID,Phone,Address"
+                reply = "📥 รูปแบบ: @ ชื่อ,เลขบัตร,เบอร์,ที่อยู่"
             else:
                 name, id_card, phone, address = [p.strip() for p in parts]
                 add_person(name, id_card, phone, address)
-                reply = f"Added {name} successfully"
+                reply = f"✅ เพิ่มข้อมูลของ {name} เรียบร้อยแล้ว"
         except Exception as e:
-            reply = f"Error: {e}"
+            reply = f"⚠️ เกิดข้อผิดพลาด: {e}"
 
     elif text.startswith("@lat"):
         try:
             _, id_card, location = text.strip().split(" ", 2)
             ok = update_location(id_card, location)
-            reply = "Location updated" if ok else "ID not found"
+            reply = "📍 เพิ่มโลเคชั่นสำเร็จ" if ok else "❌ ไม่พบเลขบัตรนี้"
         except:
-            reply = "Use format: @lat ID latitude,longitude"
+            reply = "📍 รูปแบบ: @lat เลขบัตร ละติจูด,ลองจิจูด"
 
     elif text.startswith("@จับ"):
         try:
             parts = text.replace("@จับ", "", 1).strip().split(",")
             if len(parts) != 5:
-                reply = "Format: @จับ ID,Charge,Place,Date,Evidence"
+                reply = "🚓 รูปแบบ: @จับ เลขบัตร,ข้อหา,สถานที่จับ,วันที่,ของกลาง"
             else:
                 id_card, charge, place, date, evidence = [p.strip() for p in parts]
                 ok = update_case_info(id_card, charge, place, date, evidence)
-                reply = "Arrest record updated" if ok else "ID not found"
+                reply = "✅ บันทึกข้อมูลการจับกุมแล้ว" if ok else "❌ ไม่พบเลขบัตรนี้"
         except Exception as e:
-            reply = f"Error: {e}"
+            reply = f"⚠️ เกิดข้อผิดพลาด: {e}"
 
     elif text.strip() == "#รายชื่อ":
         results = search_person("")
         if not results:
-            reply = "No data available."
+            reply = "📋 ยังไม่มีข้อมูลในระบบ"
         else:
             chunks = []
             chunk = ""
-for r in results:
-    entry = (
-        f"Name: {r['name']}\n"
-        f"Address: {r['address'] or '-'}\n\n"
-    )
-
-        if len(chunk + entry) > 1500:
-        chunks.append(chunk)
-        chunk = entry
-        else:
-        chunk += entry
+            for r in results:
+                entry = (
+                    f"👤 {r['name']}\n"
+                    f"🏠 {r['address'] or '-'}\n\n"
+                )
+                if len(chunk + entry) > 1500:
+                    chunks.append(chunk)
+                    chunk = entry
                 else:
                     chunk += entry
             chunks.append(chunk)
@@ -98,15 +95,15 @@ for r in results:
 
         if results:
             for r in results:
-                detail = f"""Name: {r['name']}
-ID: {r['id_card']}
-Phone: {r['phone']}
-Address: {r['address']}
-Location: {r['location'] or 'None'}
-Charge: {r['charge'] or '-'}
-Place: {r['arrest_place'] or '-'}
-Date: {r['arrest_date'] or '-'}
-Evidence: {r['evidence'] or '-'}"""
+                detail = f"""👤 {r['name']}
+🆔 {r['id_card']}
+📞 {r['phone']}
+🏠 {r['address']}
+📍 พิกัด: {r['location'] or 'ยังไม่มี'}
+⚖️ ข้อหา: {r['charge'] or '-'}
+🚔 สถานที่จับ: {r['arrest_place'] or '-'}
+📆 วันที่จับ: {r['arrest_date'] or '-'}
+🧾 ของกลาง: {r['evidence'] or '-'}"""
                 messages.append(TextSendMessage(text=detail))
 
                 if r.get("photo_url") and r["photo_url"].startswith("http"):
@@ -119,32 +116,28 @@ Evidence: {r['evidence'] or '-'}"""
                     try:
                         lat, lng = map(float, r["location"].split(","))
                         messages.append(LocationSendMessage(
-                            title=f"Location of {r['name']}",
+                            title=f"📍 ตำแหน่งของ {r['name']}",
                             address=r["address"],
                             latitude=lat,
                             longitude=lng
                         ))
                     except:
-                        messages.append(TextSendMessage(text="Invalid coordinates."))
+                        messages.append(TextSendMessage(text="⚠️ พิกัดไม่ถูกต้อง"))
 
             line_bot_api.reply_message(event.reply_token, messages[:5])
             return
         else:
-            reply = "No matching records found."
+            reply = "❌ ไม่พบข้อมูลที่ค้นหา"
 
     elif text in ["เมนู", "menu", "help"]:
-        reply = ("Bot Command Menu:
-
-"
-                 "@ ชื่อ,เลขบัตร,เบอร์,ที่อยู่
-"
-                 "@lat เลขบัตร latitude,longitude
-"
-                 "@จับ เลขบัตร,ข้อหา,สถานที่จับกุม,วันที่จับกุม,ของกลาง
-"
-                 "#keyword or #ID
-"
-                 "#รายชื่อ")
+        reply = (
+            "📌 คำสั่งใช้งานของบอท:\n\n"
+            "➕ เพิ่มข้อมูล:\n@ ชื่อ,เลขบัตร,เบอร์,ที่อยู่\n\n"
+            "📍 เพิ่มโลเคชั่น:\n@lat เลขบัตร ละติจูด,ลองจิจูด\n\n"
+            "🚓 เพิ่มข้อมูลจับกุม:\n@จับ เลขบัตร,ข้อหา,สถานที่จับ,วันที่จับ,ของกลาง\n\n"
+            "🔍 ค้นหาข้อมูล:\n#ชื่อ หรือ #เลขบัตร\n\n"
+            "📋 แสดงรายชื่อทั้งหมด:\n#รายชื่อ"
+        )
 
     line_bot_api.reply_message(
         event.reply_token,
